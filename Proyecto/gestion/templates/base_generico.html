@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}BookNest{% endblock %}</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        /* Estilos personalizados adicionales */
+        body {
+            background-color: #1a1a1a;
+            font-family: 'Arial', sans-serif;
+            color: #f5f5f5;
+        }
+        
+        /* Ajuste de navbar */
+        .navbar-custom {
+            background-color: #e91e63;
+            padding: 1rem 2rem;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        .navbar-custom .navbar-brand {
+            color: #ffffff;
+            font-weight: bold;
+            font-size: 2rem;
+            transition: color 0.3s ease;
+        }
+        
+        .navbar-custom .navbar-brand:hover {
+            color: #ff80ab;
+        }
+
+        .navbar-custom .nav-link {
+            color: #f5f5f5;
+            font-size: 1.1rem;
+            transition: color 0.3s ease;
+        }
+        
+        .navbar-custom .nav-link:hover {
+            color: #ff80ab;
+        }
+        
+        h2 {
+            font-size: 2.5rem;
+            color: #ff4081;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+        
+        p {
+            color: #bdbdbd;
+        }
+        
+        a {
+            color: #ff4081;
+            transition: color 0.3s ease;
+        }
+        
+        a:hover {
+            color: #ff80ab;
+        }
+
+        /* Estilo para botones personalizados */
+        .btn-custom, .btn-success, .btn-primary, .btn-danger {
+            color: #ffffff;
+            background-color: #ff4081;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+        
+        .btn-custom:hover, .btn-success:hover, .btn-primary:hover, .btn-danger:hover {
+            background-color: #c2185b;
+        }
+        
+        li.list-group-item {
+            background-color: #2a2a2a;
+            border-color: #ff4081;
+            color: #f5f5f5;
+        }
+        
+        .messages .alert {
+            margin-top: 15px;
+            background-color: #ff80ab;
+            color: #1a1a1a;
+            border: 1px solid #ff4081;
+        }
+        
+        footer {
+            background-color: #1a1a1a;
+            color: #bdbdbd;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 30px;
+            border-top: 1px solid #ff4081;
+        }
+        
+        .container {
+            max-width: 960px;
+        }
+        
+        .alert-success {
+            background-color: #81c784;
+            color: #ffffff;
+        }
+        
+        .alert-danger {
+            background-color: #e57373;
+            color: #ffffff;
+        }
+        
+        .alert-warning {
+            background-color: #fff176;
+            color: #1a1a1a;
+        }
+    </style>
+</head>
+<body>
+<!-- Barra de navegación -->
+<nav class="navbar navbar-expand-lg navbar-custom">
+    <a class="navbar-brand" href="{% url 'prestamos' %}">BookNest</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon" style="color: #ffffff;"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos' %}">Préstamos</a></li>
+            
+            {% if user.is_authenticated %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'biblioteca' %}">Mi Biblioteca</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a></li>
+                
+                <!-- Formulario de cierre de sesión -->
+                <li class="nav-item">
+                    <form action="{% url 'logout' %}" method="post" style="display:inline;">
+                        {% csrf_token %}
+                        <button type="submit" class="nav-link btn btn-link" style="color: inherit; padding: 0;">Cerrar sesión</button>
+                    </form>
+                </li>
+                
+            {% else %}
+                <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Iniciar sesión</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'register' %}">Registrarse</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</nav>
+
+
+    <main class="container mt-4">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-12">
+                {% block content %}
+                <!-- Bloque reemplazable por contenido específico -->
+                {% endblock %}
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2024 BookNest. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts de Bootstrap -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/epubjs@0.3.88/dist/epub.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

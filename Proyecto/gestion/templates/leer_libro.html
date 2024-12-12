@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ titulo }}</title>
+    <style>
+        body {
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            margin: 20px;
+            padding: 20px;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+        h1, h2, h3 {
+            color: #555;
+        }
+        hr {
+            margin: 50px 0;
+            border: none;
+            border-top: 1px solid #ccc;
+        }
+        p {
+            margin-bottom: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ titulo }}</h1>
+    <article>
+        {{ contenido|safe }}
+    </article>
+</body>
+</html>
+

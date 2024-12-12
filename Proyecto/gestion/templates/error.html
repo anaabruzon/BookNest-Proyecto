@@ -1,0 +1,10 @@
+{% extends 'base_generico.html' %}
+
+{% block title %}Error - BookNest{% endblock %}
+
+{% block content %}
+<h2>Error</h2>
+<p>{{ error }}</p>
+<a href="{% url 'biblioteca' %}" class="btn btn-primary">Volver a la Biblioteca</a>
+{% endblock %}
+

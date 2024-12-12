@@ -1,0 +1,21 @@
+{% extends 'base_generico.html' %}
+
+{% block title %}Ranking de Libros - BookNest{% endblock %}
+
+{% block content %}
+<h2>Ranking Anual de Libros</h2>
+
+{% if ranking %}
+    <ul class="list-group">
+        {% for libro in ranking %}
+            <li class="list-group-item">
+                <h5>{{ libro.libro__titulo }}</h5>
+                <p>Calificación promedio: {{ libro.promedio|floatformat:1 }}</p>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No hay calificaciones suficientes para generar el ranking.</p>
+{% endif %}
+{% endblock %}
+

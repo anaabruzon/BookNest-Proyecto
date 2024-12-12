@@ -1,0 +1,12 @@
+{% extends 'base_generico.html' %}
+
+{% block title %}Agregar Libro{% endblock %}
+
+{% block content %}
+<h2>Agregar un Nuevo Libro</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Subir Libro</button>
+</form>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% extends 'base_generico.html' %}
+
+{% block content %}
+    <h1>{{ libro.titulo }}</h1>
+    <div class="libro-detalle">
+        <div class="libro-info">
+            {% if libro.portada %}
+                <img src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}" class="libro-portada">
+            {% endif %}
+            <p><strong>Autor:</strong> {{ libro.autor }}</p>
+            <p><strong>Edición:</strong> {{ libro.edicion }}</p>
+            <p><strong>ISBN:</strong> {{ libro.isbn }}</p>
+        </div>
+
+        <!-- Comentarios -->
+        <div class="comentarios">
+            <h3>Comentarios</h3>
+            <ul class="comentarios-lista">
+                {% for comentario in comentarios %}
+                    <li class="comentario-item">
+                        <p><strong>{{ comentario.usuario.username }}</strong>: {{ comentario.texto }}</p>
+                        <small>{{ comentario.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                    </li>
+                {% empty %}
+                    <p>No hay comentarios para este libro.</p>
+                {% endfor %}
+            </ul>
+
+            <!-- Formulario para añadir un comentario -->
+            <div class="formulario-comentario">
+                <h4>Añadir un comentario</h4>
+                <form method="post" action="{% url 'crear-comentario' libro.id %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    <button type="submit" class="btn-comentar">Comentar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

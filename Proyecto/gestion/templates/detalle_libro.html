@@ -12,34 +12,44 @@
     <p><strong>ISBN:</strong> {{ libro.isbn }}</p>
 {% endif %}
 
+<div class="puntuacion-actual">
+    {% if puntuacion_form.instance.pk %}
+        <p><strong>Tu puntuación actual:</strong> {{ puntuacion_form.instance.puntuacion }}</p>
+    {% else %}
+        <p>Aún no has puntuado este libro. ¡Sé el primero en hacerlo!</p>
+    {% endif %}
+</div>
+
+<div class="puntuacion-formulario">
+    <form method="post" action="{% url 'detalle_libro' libro.id %}">
+        {% csrf_token %}
+        {{ puntuacion_form.non_field_errors }}
+        <div class="form-group">
+            <label for="id_puntuacion"><strong>Puntúa este libro:</strong></label>
+            {{ puntuacion_form.puntuacion }}
+        </div>
+        <button type="submit" class="btn btn-primary">
+            {% if puntuacion_form.instance.pk %}Modificar Puntuación{% else %}Enviar Puntuación{% endif %}
+        </button>
+    </form>
+</div>
 
 
-<form method="post" action="{% url 'puntuar_libro' libro.id %}">
-    {% csrf_token %}
-    <label for="puntuacion">Puntuación (1-10):</label>
-    <input type="number" id="puntuacion" name="puntuacion" min="1" max="10" required>
-    <button type="submit">Enviar Puntuación</button>
-</form>
 
 
 {% if not libro.usuario_prestamo %}
-    <a href="{% url 'leer_libro' libro.id %}" class="btn btn-primary btn-sm">Leer en HTML</a>
+    <a href="{% url 'leer_libro' libro.id %}" class="btn btn-primary btn-sm">Leer</a>
 {% endif %}
-
-
-
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/epub.js/0.3.88/epub.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // Accede a la URL del archivo EPUB, que debería estar en la carpeta media
-        var archivoUrl = "{{ libro.archivo.url }}"; // Esto usa el campo 'archivo' de tu modelo
+        var archivoUrl = "{{ libro.archivo.url }}";
         if (!archivoUrl) {
             alert("El archivo del libro no está disponible.");
             return;
         }
 
-        // Inicializa ePub.js con la URL del archivo
         var book = ePub(archivoUrl);
         var rendition = book.renderTo("book-container", {
             width: "100%",
@@ -47,7 +57,6 @@
         });
         rendition.display();
 
-        // Controles de navegación
         document.getElementById("prev").addEventListener("click", function () {
             rendition.prev();
         });

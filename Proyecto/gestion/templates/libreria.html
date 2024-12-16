@@ -1,0 +1,64 @@
+{% extends 'base_generico.html' %}
+
+{% block content %}
+    <h1>Lista de Libros</h1>
+    <div>
+        <form method="get" action="{% url 'librerialibro-search' %}">
+            <input type="text" name="titles" class="form-control" placeholder="Buscar títulos">
+            <button type="submit" style="border:1px#fff; background:#f39ab8; color:#000;">Buscar</button>
+        </form>
+    </div>
+    <br>
+    <ul class="lista-libros">
+        {% for libro in librerialibros %}
+            <li class="libro-item">
+                <!-- Recuadro para cada libro -->
+                <div class="libro-recuadro">
+                    <!-- Portada del libro -->
+                    {% if libro.portada %}
+                        <img src="{{ libro.portada.url }}" alt="Portada de {{ libro.titulo }}" class="libro-portada">
+                    {% endif %}
+
+                    <!-- Información del libro -->
+                    <div class="libro-info">
+                        <h2>{{ libro.titulo }}</h2>
+                        <p><strong>Autor:</strong> {{ libro.autor }}</p>
+                        <p><strong>Edición:</strong> {{ libro.edicion }}</p>
+                        <p><strong>ISBN:</strong> {{ libro.isbn }}</p>
+                    </div>
+
+                    <!-- Comentarios del libro -->
+                    <div class="comentarios">
+                        <h3>Comentarios</h3>
+                        <ul class="comentarios-lista">
+                            {% for comentario in libro.comentarios.all|slice:":5" %}
+                                <li class="comentario-item">
+                                    <p><strong>{{ comentario.usuario.username }}</strong>: {{ comentario.texto }}</p>
+                                    <small>{{ comentario.fecha_creacion|date:"d/m/Y H:i" }}</small>
+                                </li>
+                            {% empty %}
+                                <p>No hay comentarios para este libro.</p>
+                            {% endfor %}
+                        </ul>
+
+                        <!-- Botón Ver más -->
+                        {% if libro.comentarios.count > 5 %}
+                            <a href="{% url 'libro-detail' libro.id %}#comentarios" class="btn-ver-mas">Ver más comentarios</a>
+                        {% endif %}
+                    </div>
+
+                    <!-- Formulario para agregar un comentario -->
+                    <div class="formulario-comentario">
+                        <h4>Añadir un comentario</h4>
+                        <form method="post" action="{% url 'crear-comentario' libro.id %}">
+                            {% csrf_token %}
+                            {{ form.as_p }}
+                            <button type="submit" class="btn-comentar">Comentar</button>
+                        </form>
+                    </div>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
+

@@ -1,5 +1,5 @@
 from django import forms
-from .models import Libro, Prestamo, PuntuacionLibro, Almacen
+from .models import Libro, PuntuacionLibro, Almacen, Comentario
 from ebooklib import epub
 import requests
 import tempfile  # Asegúrate de importar tempfile
@@ -133,18 +133,6 @@ class LibroForm(forms.ModelForm):
             return None
         return None
 
-
-# Formulario para gestionar el préstamo de un libro
-class PrestamoForm(forms.ModelForm):
-    class Meta:
-        model = Prestamo
-        fields = ['libro']  # Se asume que el libro se selecciona desde la biblioteca
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Filtrar solo los libros que están disponibles para préstamo
-        self.fields['libro'].queryset = Libro.objects.filter(en_prestamo=False)
-
 # Formulario para calificar un libro
 class PuntuacionForm(forms.ModelForm):
     class Meta:
@@ -160,3 +148,20 @@ class PuntuacionForm(forms.ModelForm):
         
         return puntuacion
 
+class ComentarioForm(forms.ModelForm):
+    class Meta:
+        model = Comentario
+        fields = ['texto']  # Solo el campo que el usuario necesita completar
+        widgets = {
+            'texto': forms.Textarea(attrs={
+                'rows': 4,
+                'placeholder': 'Escribe tu comentario aquí...',
+                'class': 'form-control',
+            }),
+        }
+        labels = {
+            'texto': 'Comentario',
+        }
+        help_texts = {
+            'texto': 'Por favor, escribe un comentario sobre este libro.',
+        }

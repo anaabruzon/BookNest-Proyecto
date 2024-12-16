@@ -16,20 +16,9 @@
             <li class="list-group-item d-flex justify-content-between align-items-center">
                 <div>
                     <h5>{{ libro.titulo }}</h5>
-                    {% if libro.usuario_prestamo %}
-                        <p>En préstamo por: {{ libro.usuario_prestamo.username }} desde {{ libro.fecha_prestamo }}</p>
-                    {% endif %}
                 </div>
                 <div>
                     <a href="{% url 'detalle_libro' libro.id %}" class="btn btn-primary btn-sm">Detalles</a>
-                    {% if not libro.usuario_prestamo %}
-                        <form action="{% url 'prestar_libro' libro.id %}" method="post" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-warning btn-sm">Prestar</button>
-                        </form>
-                    {% else %}
-                        <button class="btn btn-secondary btn-sm" disabled>En préstamo</button>
-                    {% endif %}
                 </div>
             </li>
         {% endfor %}
@@ -37,25 +26,6 @@
 
 {% else %}
     <p>No tienes libros en tu biblioteca aún.</p>
-<h1>Top 10 Libros Mejor Puntuados</h1>
-<table>
-    <thead>
-        <tr>
-            <th>Título</th>
-            <th>Autor</th>
-            <th>Promedio</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for libro in ranking %}
-        <tr>
-            <td>{{ libro.libro__titulo }}</td>
-            <td>{{ libro.libro__autor }}</td>
-            <td>{{ libro.promedio|floatformat:2 }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
 
 {% endif %}
 {% endblock %}

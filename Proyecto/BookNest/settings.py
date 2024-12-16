@@ -133,5 +133,5 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_REDIRECT_URL = '/biblioteca/'  # Cambia esta URL a la que desees
-LOGOUT_REDIRECT_URL = 'prestamos'  # Nombre de tu URL de préstamos
+LOGOUT_REDIRECT_URL = 'libreria'  # Nombre de tu URL de préstamos
 

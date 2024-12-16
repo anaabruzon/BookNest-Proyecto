@@ -4,7 +4,7 @@ from django.views.generic import ListView, DetailView, CreateView, RedirectView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, render, redirect
 from django.db.models import Avg
-from .models import Libro, PuntuacionLibro, Prestamo, Almacen
+from .models import Libro, PuntuacionLibro, Almacen, LibreriaLibro
 from .forms import LibroForm, PuntuacionForm
 from django.http import FileResponse, Http404
 from django.views import View
@@ -21,6 +21,7 @@ from django.http import HttpResponse
 from django.views import View
 from ebooklib import epub
 from weasyprint import HTML  # Asegúrate de tener weasyprint instalado
+from django.http import HttpResponseBadRequest
 
 # Vista para mostrar la biblioteca del usuario
 class BibliotecaView(LoginRequiredMixin, ListView):
@@ -35,49 +36,6 @@ class BibliotecaView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['puntuaciones'] = PuntuacionLibro.objects.filter(usuario=self.request.user)
         return context
-
-# Vista para mostrar libros disponibles para préstamo
-class PrestamosView(ListView):
-    model = Libro
-    template_name = 'prestamos.html'
-    context_object_name = 'libros'
-
-    def get_queryset(self):
-        return Libro.objects.filter(en_prestamo=False)
-
-# Vista para prestar un libro
-from django.http import Http404
-
-class PrestarLibroView(LoginRequiredMixin, RedirectView):
-    pattern_name = 'prestamos'
-
-    def post(self, request, *args, **kwargs):
-        libro = get_object_or_404(Libro, id=self.kwargs['libro_id'], en_prestamo=False)
-
-        if not libro.isbn:
-            return render(request, 'error.html', {'error': 'El libro debe tener un ISBN registrado antes de ser prestado.'})
-
-        prestamo, created = Prestamo.objects.get_or_create(libro=libro)
-        prestamo.usuarios.add(request.user)
-        libro.en_prestamo = True
-        libro.save()
-
-        return redirect(self.get_redirect_url())
-
-
-# Vista para devolver un libro
-class DevolverLibroView(LoginRequiredMixin, RedirectView):
-    pattern_name = 'biblioteca'
-
-    def post(self, request, *args, **kwargs):
-        libro = get_object_or_404(Libro, id=self.kwargs['libro_id'])
-        prestamo = get_object_or_404(Prestamo, libro=libro)
-
-        # Si el usuario está en la lista de usuarios del préstamo, finalizar el préstamo
-        if request.user in prestamo.usuarios.all():
-            prestamo.finalizar_prestamo(request.user)
-
-        return redirect(self.get_redirect_url())
 
 # Vista para mostrar detalles del libro
 from ebooklib import epub, ITEM_DOCUMENT  # Asegúrate de importar ITEM_DOCUMENT
@@ -98,10 +56,6 @@ class DetalleLibroView(LoginRequiredMixin, DetailView):
         contenido = []
         try:
             libro_epub = epub.read_epub(ruta_epub)
-            
-            # Agregar el print para inspeccionar el contenido del archivo EPUB
-            print([item for item in libro_epub.get_items()])  # Depuración
-
             # Extraer el contenido de los documentos
             for item in libro_epub.get_items_of_type(ITEM_DOCUMENT):
                 contenido.append(item.get_content().decode('utf-8'))
@@ -111,11 +65,44 @@ class DetalleLibroView(LoginRequiredMixin, DetailView):
         # Agregar el contenido al contexto
         context['contenido'] = contenido
 
-        # Contexto adicional
-        context['puntuacion'] = PuntuacionLibro.objects.filter(libro=libro, usuario=self.request.user).first()
-        context['puntuacion_form'] = PuntuacionForm()
+        # Obtener puntuación existente del usuario para este libro
+        puntuacion_usuario = PuntuacionLibro.objects.filter(libro=libro, usuario=self.request.user).first()
+
+        # Si existe puntuación, incluirla en el contexto
+        context['puntuacion'] = puntuacion_usuario.puntuacion if puntuacion_usuario else None
+
+        # Pasar el formulario de puntuación prellenado si hay puntuación existente
+        context['puntuacion_form'] = PuntuacionForm(instance=puntuacion_usuario)
 
         return context
+
+    def post(self, request, *args, **kwargs):
+        libro = self.get_object()
+
+        # Procesar el formulario de puntuación
+        form = PuntuacionForm(request.POST)
+
+        if form.is_valid():
+            puntuacion = form.cleaned_data['puntuacion']
+
+            # Validar que la puntuación esté entre 1 y 10
+            if not (1 <= puntuacion <= 10):
+                return HttpResponseBadRequest("La puntuación debe estar entre 1 y 10.")
+
+            # Crear o actualizar la puntuación
+            PuntuacionLibro.objects.update_or_create(
+                libro=libro,
+                usuario=request.user,
+                defaults={'puntuacion': puntuacion}
+            )
+
+            # Redirigir al detalle del libro después de guardar la puntuación
+            return redirect('detalle_libro', pk=libro.id)
+
+        # Si el formulario no es válido, recargar la página con errores
+        context = self.get_context_data()
+        context['puntuacion_form'] = form
+        return self.render_to_response(context)
 
     
 # Vista para puntuar un libro
@@ -218,9 +205,34 @@ class RegistroView(CreateView):
 
         return render(request, 'registration/register.html', {'form': form})
 
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth import update_session_auth_hash
+from django.contrib import messages
+from django.views.generic import TemplateView
+from django.shortcuts import redirect
 
 class ProfileView(LoginRequiredMixin, TemplateView):
-    template_name = 'profile.html'  # Asegúrate de crear este archivo de plantilla
+    template_name = 'profile.html'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Instanciar el formulario de cambio de contraseña
+        context['password_change_form'] = PasswordChangeForm(user=self.request.user)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        password_change_form = PasswordChangeForm(user=request.user, data=request.POST)
+
+        if password_change_form.is_valid():
+            password_change_form.save()
+            # Mantener la sesión después del cambio de contraseña
+            update_session_auth_hash(request, request.user)
+            messages.success(request, '¡Tu contraseña ha sido actualizada con éxito!')
+            return redirect('profile')  # Redirige a la misma página del perfil
+        else:
+            messages.error(request, 'Por favor corrige los errores en el formulario.')
+            # Si hay errores, recargar el formulario con los errores
+            return self.render_to_response(self.get_context_data(password_change_form=password_change_form))
 
 
 from ebooklib import epub
@@ -261,3 +273,81 @@ class LeerLibroView(View):
             return render(request, 'error.html', {"mensaje_error": str(e)})
 
 
+class LibreriaView(ListView):
+    model = LibreriaLibro
+    template_name = 'libreria.html'
+    context_object_name = 'librerialibros'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        for libro in context['librerialibros']:
+            if libro.portada:
+                libro.portada_url = libro.portada.url
+            else:
+                libro.portada_url = None
+        return context
+    
+from django.views.generic import DetailView
+from django.views.generic.edit import FormView
+from django.urls import reverse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.shortcuts import get_object_or_404, redirect
+from .models import LibreriaLibro, Comentario
+from .forms import ComentarioForm
+
+class ComentarioCreateView(LoginRequiredMixin, FormView):
+    form_class = ComentarioForm
+
+    def form_valid(self, form):
+        libro_id = self.kwargs['pk']
+        libro = get_object_or_404(LibreriaLibro, pk=libro_id)
+        comentario = form.save(commit=False)
+        comentario.libro = libro
+        comentario.usuario = self.request.user
+        comentario.save()
+        return redirect(reverse('libro-detail', kwargs={'pk': libro_id}))
+
+    def form_invalid(self, form):
+        libro_id = self.kwargs['pk']
+        return redirect(reverse('libro-detail', kwargs={'pk': libro_id}))
+
+from django.shortcuts import render, get_object_or_404
+from .models import LibreriaLibro, Comentario
+from .forms import ComentarioForm
+
+def libro_detail(request, pk):
+    librerialibro = get_object_or_404(LibreriaLibro, pk=pk)
+    comentarios = librerialibro.comentarios.all()  # Obtener todos los comentarios del libro
+    form = ComentarioForm()
+
+    # Verificar si el formulario se envía
+    if request.method == "POST" and request.user.is_authenticated:
+        form = ComentarioForm(request.POST)
+        if form.is_valid():
+            comentario = form.save(commit=False)
+            comentario.libro = librerialibro
+            comentario.usuario = request.user
+            comentario.save()
+            return redirect('libro-detail', pk=librerialibro.pk)
+
+    context = {
+        'libro': librerialibro,
+        'comentarios': comentarios,
+        'form': form,
+    }
+
+    return render(request, 'libro_detail.html', context)
+
+class BuscarViews(ListView):
+    model = LibreriaLibro
+    template_name = 'libreria.html'
+    context_object_name = 'librerialibros'
+
+    def get_queryset(self):
+        # Obtener el valor del parámetro 'titles' de la URL
+        titles = self.request.GET.get('titles', '')
+        if titles:
+            # Usar el filtro correcto con __icontains
+            return LibreriaLibro.objects.filter(titulo__icontains=titles)
+        # Si no hay búsqueda, retornar todos los libros
+        return LibreriaLibro.objects.all()

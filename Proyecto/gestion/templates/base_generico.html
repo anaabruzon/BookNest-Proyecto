@@ -8,6 +8,83 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <style>
+/* Estilo para el recuadro de cada libro */
+.libro-recuadro {
+    border: 1px solid #ddd;   /* Borde suave */
+    padding: 20px;            /* Espacio interno */
+    margin-bottom: 20px;      /* Separación entre libros */
+    border-radius: 8px;       /* Bordes redondeados */
+    background-color: #504f4f; /* Fondo gris claro */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Sombra ligera */
+}
+
+/* Portada del libro */
+.libro-portada {
+    width: 100px;  /* Tamaño fijo para la portada */
+    height: auto;  /* Mantener la relación de aspecto */
+    margin-right: 20px; /* Separación entre imagen y texto */
+}
+
+/* Estilo para la información del libro */
+.libro-info {
+    display: inline-block;
+    vertical-align: top;
+    max-width: 75%;
+}
+
+/* Cambiar el color de los parámetros (autor, edición, ISBN) */
+.libro-info p {
+    color: #fffefe;  /* Un gris más oscuro que el color predeterminado */
+}
+
+/* Estilo para la fecha */
+.fecha-comentario {
+    color: #050505; /* Gris oscuro (puedes usar otro color como #999) */
+    font-size: 0.9em; /* Tamaño ligeramente más pequeño */
+    font-style: italic; /* Cursiva para destacar */
+}
+
+/* Estilo para los comentarios */
+.texto-comentario {
+    color: #000000; /* Negro suave */
+    font-size: 1em; /* Tamaño normal */
+    line-height: 1.5; /* Espaciado entre líneas */
+}
+
+/* Asegúrate de que los comentarios y el formulario también tengan buen espaciado */
+.comentarios, .formulario-comentario {
+    margin-top: 20px;
+}
+
+/* Botón 'Ver más comentarios' */
+.btn-ver-mas {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 5px 10px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.btn-ver-mas:hover {
+    background-color: #0056b3;
+}
+
+/* Botón 'Comentar' */
+.btn-comentar {
+    background-color: #ff6ca9;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    border: none;
+}
+
+.btn-comentar:hover {
+    background-color: #ff3a86;
+}
+
+
         /* Estilos personalizados adicionales */
         body {
             background-color: #1a1a1a;
@@ -123,18 +200,18 @@
 <body>
 <!-- Barra de navegación -->
 <nav class="navbar navbar-expand-lg navbar-custom">
-    <a class="navbar-brand" href="{% url 'prestamos' %}">BookNest</a>
+    <a class="navbar-brand" href="{% url 'libreria' %}">BookNest</a>
     <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon" style="color: #ffffff;"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link" href="{% url 'prestamos' %}">Préstamos</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'libreria' %}">Libreria</a></li>
             
             {% if user.is_authenticated %}
-                <li class="nav-item"><a class="nav-link" href="{% url 'biblioteca' %}">Mi Biblioteca</a></li>
+                <!--<li class="nav-item"><a class="nav-link" href="{% url 'biblioteca' %}">Mi Biblioteca</a></li>-->               
                 <li class="nav-item"><a class="nav-link" href="{% url 'profile' %}">{{ user.username }}</a></li>
-                
+                <li class="nav-item"><a class="nav-link" href="{% url 'biblioteca' %}">Mi Biblioteca</a></li>
                 <!-- Formulario de cierre de sesión -->
                 <li class="nav-item">
                     <form action="{% url 'logout' %}" method="post" style="display:inline;">

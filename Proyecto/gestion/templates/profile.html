@@ -6,4 +6,37 @@
 {% block content %}
 <h2>Bienvenido, {{ user.username }}!</h2>
 <p>Esta es tu página de perfil.</p>
+
+<hr>
+
+<h3>Cambiar Contraseña</h3>
+<form method="post">
+    {% csrf_token %}
+    {{ password_change_form.non_field_errors }}
+    <div>
+        <label for="id_old_password">Contraseña actual:</label>
+        {{ password_change_form.old_password }}
+    </div>
+    <div>
+        <label for="id_new_password1">Nueva contraseña:</label>
+        {{ password_change_form.new_password1 }}
+    </div>
+    <div>
+        <label for="id_new_password2">Confirmar nueva contraseña:</label>
+        {{ password_change_form.new_password2 }}
+    </div>
+    <button type="submit" class="btn btn-primary">Actualizar Contraseña</button>
+</form>
+
+{% if messages %}
+    <ul class="messages">
+        {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<hr>
+
+<a href="{% url 'logout' %}" class="btn btn-danger">Cerrar sesión</a>
 {% endblock %}

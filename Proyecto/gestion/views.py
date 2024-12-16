@@ -201,7 +201,7 @@ class RegistroView(CreateView):
             almacen = Almacen.objects.create(usuario=user)  # Usamos 'usuario' en lugar de 'propietario'
             
             login(request, user)  # Iniciar sesión con el usuario recién creado
-            return redirect('prestamos')  # Redirigir a la vista de préstamos
+            return redirect('libreria')  # Redirigir a la vista de préstamos
 
         return render(request, 'registration/register.html', {'form': form})
 
